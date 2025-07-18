@@ -1,1 +1,93 @@
-# Malla-derecho-uv-
+# Malla-derecho-uv-<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malla Interactiva Derecho</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .semestre {
+      border: 2px solid #ccc;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .semestre h2 {
+      margin-top: 0;
+    }
+    .ramo {
+      background-color: pink;
+      padding: 6px;
+      margin: 5px 0;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .aprobado {
+      background-color: purple;
+      color: white;
+      text-decoration: line-through;
+    }
+    .bloqueado {
+      background-color: lightgray;
+      color: #666;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular Derecho</h1>
+  <div id="malla"></div>
+
+  <script>
+    const ramos = REEMPLAZAR_CON_LISTA_DE_RAMOS;
+
+    const estado = JSON.parse(localStorage.getItem("estadoRamos") || "{}");
+
+    function requisitosCumplidos(ramo) {
+      return !ramo.requisitos || ramo.requisitos.every(id => estado[id]);
+    }
+
+    function render() {
+      const malla = document.getElementById("malla");
+      malla.innerHTML = "";
+      const porSemestre = {};
+      for (const ramo of ramos) {
+        if (!porSemestre[ramo.semestre]) porSemestre[ramo.semestre] = [];
+        porSemestre[ramo.semestre].push(ramo);
+      }
+      for (const semestre of Object.keys(porSemestre).sort()) {
+        const div = document.createElement("div");
+        div.className = "semestre";
+        const h2 = document.createElement("h2");
+        h2.textContent = `Semestre ${semestre}`;
+        div.appendChild(h2);
+
+        for (const ramo of porSemestre[semestre]) {
+          const r = document.createElement("div");
+          r.textContent = ramo.nombre;
+          r.className = "ramo";
+          if (!requisitosCumplidos(ramo) && !estado[ramo.id]) {
+            r.classList.add("bloqueado");
+          } else if (estado[ramo.id]) {
+            r.classList.add("aprobado");
+          }
+          r.onclick = () => {
+            if (!requisitosCumplidos(ramo) && !estado[ramo.id]) return;
+            estado[ramo.id] = !estado[ramo.id];
+            localStorage.setItem("estadoRamos", JSON.stringify(estado));
+            render();
+          };
+          div.appendChild(r);
+        }
+        malla.appendChild(div);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
+
